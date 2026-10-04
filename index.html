@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MiCrew → LogTen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F8;--panel:#FFFFFF;--panel2:#E4EAF3;--line:#C9D4E5;--text:#12213A;--muted:#5A6B88;
+  --ready:#B7780F;--readyBg:#FCEFD3;--sent:#1E8A57;--sentBg:#DDF3E8;--up:#3F5E99;--upBg:#E2E9F6;
+  --air:#127FA3;--airBg:#D9F0F8;--warn:#C24A33;--btn:#1B3A6B;--btnText:#fff;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1628;--panel:#122039;--panel2:#18294A;--line:#243A61;--text:#E6ECF5;--muted:#8A9BB8;
+  --ready:#F2B544;--readyBg:#3A2F14;--sent:#4CC38A;--sentBg:#14352A;--up:#8FA9DA;--upBg:#1B2C4D;
+  --air:#4FC3E8;--airBg:#123447;--warn:#F0705A;--btn:#F2B544;--btnText:#0B1628;}}
+:root[data-theme="dark"]{
+  --bg:#0B1628;--panel:#122039;--panel2:#18294A;--line:#243A61;--text:#E6ECF5;--muted:#8A9BB8;
+  --ready:#F2B544;--readyBg:#3A2F14;--sent:#4CC38A;--sentBg:#14352A;--up:#8FA9DA;--upBg:#1B2C4D;
+  --air:#4FC3E8;--airBg:#123447;--warn:#F0705A;--btn:#F2B544;--btnText:#0B1628;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 2rem/1.1 "Barlow Condensed","Arial Narrow",sans-serif;margin:8px 0 4px;letter-spacing:.01em}
+.sub{color:var(--muted);margin:0 0 20px;max-width:60ch}
+.cond{font-family:"Barlow Condensed","Arial Narrow",sans-serif}
+textarea{width:100%;min-height:140px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.4 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+button,.btn{appearance:none;border:0;border-radius:10px;padding:12px 18px;font:600 1rem Barlow,system-ui,sans-serif;cursor:pointer;background:var(--btn);color:var(--btnText);text-decoration:none;display:inline-block;text-align:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.small{padding:7px 12px;font-size:.88rem;border-radius:8px}
+button:focus-visible,.btn:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--air);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.settings{display:flex;flex-wrap:wrap;gap:14px 22px;margin:14px 0;color:var(--muted);font-size:.95rem}
+.settings label{display:flex;gap:8px;align-items:center}
+select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
+.ready{background:var(--readyBg);border:1px solid var(--ready);border-radius:14px;padding:16px;margin:22px 0}
+.ready h2{margin:0 0 4px;font:700 1.5rem/1.15 "Barlow Condensed",sans-serif;color:var(--ready)}
+.ready p{margin:0 0 12px;color:var(--text)}
+.check{font-size:.95rem;color:var(--muted);margin:14px 0}
+.check b{color:var(--text)}
+.ok{color:var(--sent)} .bad{color:var(--warn)}
+.duty{margin:26px 0 0}
+.dutyhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px}
+.dutyhead h3{margin:0;font:600 1.3rem "Barlow Condensed",sans-serif}
+.dutyhead span{color:var(--muted);font-size:.9rem}
+.leg{display:grid;grid-template-columns:6px 1fr auto;gap:0 14px;background:var(--panel);border-radius:12px;margin:8px 0;overflow:hidden}
+.leg .bar{background:var(--up)}
+.leg[data-s="ready"] .bar{background:var(--ready)}
+.leg[data-s="sent"] .bar{background:var(--sent)}
+.leg[data-s="air"] .bar{background:var(--air)}
+.leg .main{padding:12px 0}
+.route{font:700 1.7rem/1 "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.route .arrow{color:var(--muted);font-weight:500;margin:0 6px}
+.meta{color:var(--muted);font-size:.92rem;margin-top:4px}
+.meta b{color:var(--text);font-weight:600}
+.side{padding:12px 12px 12px 0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px}
+.pill{font:600 .8rem Barlow,sans-serif;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.up{background:var(--upBg);color:var(--up)} .pill.ready{background:var(--readyBg);color:var(--ready)}
+.pill.sent{background:var(--sentBg);color:var(--sent)} .pill.air{background:var(--airBg);color:var(--air)}
+.lay{color:var(--muted);font-size:.9rem;margin:6px 0 0 20px}
+.warn{color:var(--warn);font-size:.9rem;margin-top:4px}
+.modal{position:fixed;inset:0;background:rgba(5,10,20,.6);display:none;align-items:flex-end;justify-content:center;z-index:10;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.modal.on{display:flex}
+.sheet{background:var(--panel);border-radius:16px;padding:20px;max-width:520px;width:100%;max-height:85%;overflow:auto}
+.sheet h4{margin:0 0 6px;font:700 1.4rem "Barlow Condensed",sans-serif}
+.sheet p{color:var(--muted);margin:0 0 14px}
+.sheet .stack{display:flex;flex-direction:column;gap:10px}
+pre{background:var(--panel2);border-radius:8px;padding:10px;font-size:12px;overflow-x:auto;max-height:200px}
+details summary{cursor:pointer;color:var(--muted)}
+.hint{margin:-4px 0 4px;font-size:.88rem;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:30px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MiCrew → LogTen</h1>
+  <p class="sub">Paste your trip from MiCrew. Legs turn amber once their scheduled block-in time passes, ready to send to LogTen Pro in one tap.</p>
+
+  <div id="inputArea">
+    <textarea id="raw" placeholder="Paste the full MiCrew trip text here (from 'This data imported on…' through the last leg)"></textarea>
+    <div class="settings">
+      <label>Seat <select id="seat"><option value="FO">First Officer (SIC)</option><option value="CA">Captain (PIC)</option></select></label>
+      <label><input type="checkbox" id="prefill" checked> Fill OUT/IN with scheduled times</label>
+      <label><input type="checkbox" id="duty" checked> Log report time as duty start</label>
+    </div>
+    <div class="row">
+      <button id="parseBtn">Load trip</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div id="out"></div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="sheet">
+    <h4 id="mTitle">Send to LogTen</h4>
+    <p id="mText"></p>
+    <div class="stack">
+      <a class="btn" id="mOpen" href="#" target="_top" rel="noopener">Open in LogTen Pro</a>
+      <button class="ghost" id="mCopy">Copy LogTen link</button>
+      <button class="ghost" id="mMark">Mark as logged</button>
+      <button class="ghost" id="mClose">Cancel</button>
+    </div>
+    <details style="margin-top:14px"><summary>Show the data being sent</summary><pre id="mJson"></pre></details>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Airport table: IATA -> [ICAO, IANA tz] ----------
+const TZ={E:"America/New_York",C:"America/Chicago",M:"America/Denver",P:"America/Los_Angeles",A:"America/Phoenix",B:"America/Boise",I:"America/Indiana/Indianapolis",K:"America/Anchorage",H:"Pacific/Honolulu"};
+const US={
+E:"ATL BOS BWI DCA IAD JFK LGA EWR PHL PIT CLT RDU GSO RIC ORF CHS SAV JAX MCO TPA MIA FLL PBI RSW SRQ DTW CLE CMH CVG SDF BUF ROC SYR ALB BDL PVD PWM BTV MHT GRR LAN FNT TYS CHA MYR ILM AVL GSP CAE TLH DAB EYW HPN ISP TTN SFB PIE LEX DAY AGS",
+C:"BNA MEM MSP ORD MDW STL MCI MKE OMA DSM AUS SAT IAH HOU DFW DAL MSY OKC TUL LIT BHM HSV JAN PNS VPS MOB MSN ICT XNA FSD FAR GRB CID GPT CRP MAF LBB",
+M:"DEN SLC ABQ COS BZN JAC ELP MSO BIL",B:"BOI",A:"PHX TUS",
+P:"LAX SFO SAN SJC OAK SMF SNA BUR ONT PSP SEA PDX GEG LAS RNO LGB",I:"IND"};
+const AP={};
+for(const k in US) US[k].split(" ").forEach(c=>AP[c]=["K"+c,TZ[k]]);
+Object.assign(AP,{ANC:["PANC",TZ.K],FAI:["PAFA",TZ.K],HNL:["PHNL",TZ.H],OGG:["PHOG",TZ.H],KOA:["PHKO",TZ.H],LIH:["PHLI",TZ.H],
+SJU:["TJSJ","America/Puerto_Rico"],STT:["TIST","America/St_Thomas"],CUN:["MMUN","America/Cancun"],MEX:["MMMX","America/Mexico_City"],
+SJD:["MMSD","America/Mazatlan"],PVR:["MMPR","America/Bahia_Banderas"],NAS:["MYNN","America/Nassau"],MBJ:["MKJS","America/Jamaica"],
+PUJ:["MDPC","America/Santo_Domingo"],AUA:["TNCA","America/Aruba"],YYZ:["CYYZ","America/Toronto"],YUL:["CYUL","America/Toronto"],
+YVR:["CYVR","America/Vancouver"],LHR:["EGLL","Europe/London"],CDG:["LFPG","Europe/Paris"],AMS:["EHAM","Europe/Amsterdam"],
+FRA:["EDDF","Europe/Berlin"],NRT:["RJAA","Asia/Tokyo"],HND:["RJTT","Asia/Tokyo"],ICN:["RKSI","Asia/Seoul"]});
+
+// Delta equipment codes -> ICAO type
+const EQ={"319":"A319","320":"A320","321":"A321","3N1":"A21N","32N":"A20N","221":"BCS1","223":"BCS3","717":"B712","738":"B738","739":"B739","73J":"B739",
+"752":"B752","753":"B753","763":"B763","764":"B764","332":"A332","333":"A333","339":"A339","359":"A359","E75":"E75L","CR9":"CRJ9","CR7":"CRJ7"};
+
+// ---------- Time helpers ----------
+const MON={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11};
+function tzOffsetMin(ms,tz){
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(new Date(ms));
+  const g=t=>+p.find(x=>x.type===t).value;
+  return (Date.UTC(g("year"),g("month")-1,g("day"),g("hour"),g("minute"))-Math.floor(ms/60000)*60000)/60000;
+}
+function localToUTC(y,m,d,hh,mm,tz){
+  const guess=Date.UTC(y,m,d,hh,mm);
+  let off=tzOffsetMin(guess,tz), utc=guess-off*60000;
+  const off2=tzOffsetMin(utc,tz); if(off2!==off) utc=guess-off2*60000;
+  return utc;
+}
+function localParts(ms,tz){
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(new Date(ms));
+  const g=t=>p.find(x=>x.type===t).value; return {y:g("year"),m:g("month"),d:g("day"),hh:g("hour"),mm:g("minute")};
+}
+const pad=n=>String(n).padStart(2,"0");
+const zStr=ms=>{const t=new Date(ms);return `${pad(t.getUTCMonth()+1)}/${pad(t.getUTCDate())}/${t.getUTCFullYear()} ${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}`};
+const zShort=ms=>{const t=new Date(ms);return `${pad(t.getUTCHours())}${pad(t.getUTCMinutes())}Z`};
+const hm=min=>`${Math.floor(min/60)}:${pad(min%60)}`;
+function yearFor(mon,day){
+  const now=new Date(), y=now.getFullYear(), c=Date.UTC(y,mon,day), n=Date.UTC(y,now.getMonth(),now.getDate());
+  if(c-n>180*864e5) return y-1; if(n-c>180*864e5) return y+1; return y;
+}
+
+// ---------- Parser ----------
+function parse(text){
+  const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const duties=[]; let cur=null, prevArr=null, totalsBL=null, warnings=new Set();
+  for(const line of lines){
+    const tot=line.match(/(\d+:\d{2})\s*BL/); if(tot) totalsBL=tot[1];
+    const r=line.match(/^Rpt-?\s*(\d{2})(\d{2})\s+(\d{1,2})([A-Z]{3})/i);
+    if(r){cur={rptH:+r[1],rptM:+r[2],day:+r[3],mon:MON[r[4].toUpperCase()],legs:[],layover:null,hotel:null};cur.year=yearFor(cur.mon,cur.day);duties.push(cur);continue;}
+    const L=line.match(/^(DH\s+)?([A-Z]{2}|[A-Z]\d|\d[A-Z])\s?(\d{1,4})\s*(DH|DHD)?\s+([A-Z]{3})-([A-Z]{3})\s+(\d{2}):?(\d{2})\s*-\s*(\d{2}):?(\d{2})\s*(\S+)?/i);
+    if(L&&cur){
+      const from=L[5].toUpperCase(), to=L[6].toUpperCase();
+      const fa=AP[from], ta=AP[to];
+      if(!fa) warnings.add(from); if(!ta) warnings.add(to);
+      const ftz=fa?fa[1]:"UTC", ttz=ta?ta[1]:"UTC";
+      let dep=localToUTC(cur.year,cur.mon,cur.day,+L[7],+L[8],ftz);
+      const floor=prevArr!=null?prevArr-60*60000:null;
+      if(cur.legs.length===0){
+        const rpt=localToUTC(cur.year,cur.mon,cur.day,cur.rptH,cur.rptM,ftz);
+        cur.rptUTC=rpt; cur.rptTz=ftz;
+        if(dep<rpt-30*60000) dep+=864e5;
+      } else if(floor && dep<floor) dep+=864e5;
+      const dl=localParts(dep,ftz);
+      let arr=localToUTC(+dl.y,+dl.m-1,+dl.d,+L[9],+L[10],ttz);
+      while(arr<=dep) arr+=864e5;
+      while(arr-dep>864e5) arr-=864e5;
+      prevArr=arr;
+      const dh=!!(L[1]||L[4]||/\bDH\b/i.test(line));
+      const flt=(L[2]+L[3]).toUpperCase(), eq=(L[11]||"").toUpperCase();
+      const dateStr=`${dl.m}/${dl.d}/${dl.y}`;
+      cur.legs.push({flt,from,to,ftz,ttz,dep,arr,eq,type:EQ[eq]||eq,dh,dateStr,
+        depL:`${L[7]}:${L[8]}`,arrL:`${L[9]}:${L[10]}`,block:Math.round((arr-dep)/60000),
+        key:`micrew-${dl.y}${dl.m}${dl.d}-${flt}-${from}${to}`,legNo:cur.legs.length+1});
+      continue;
+    }
+    const lay=line.match(/^LAYOVER\s+(\d+:\d{2})\s*\/\s*([A-Z]{3})/i);
+    if(lay&&cur){cur.layover=`${lay[1]} in ${lay[2].toUpperCase()}`;continue;}
+    if(cur&&cur.layover&&!cur.hotel&&/:\s*[\d-]{7,}/.test(line)) cur.hotel=line.replace(/\s+/g," ");
+  }
+  return {duties:duties.filter(d=>d.legs.length),totalsBL,warnings:[...warnings]};
+}
+
+// ---------- LogTen package ----------
+function entity(leg,duty){
+  const seat=S.settings.seat;
+  const e={entity_name:"Flight",flight_key:leg.key,flight_flightDate:leg.dateStr,flight_flightNumber:leg.flt,
+    flight_from:(AP[leg.from]||[leg.from])[0],flight_to:(AP[leg.to]||[leg.to])[0],
+    flight_scheduledDepartureTime:zStr(leg.dep),flight_scheduledArrivalTime:zStr(leg.arr),
+    flight_selectedAircraftType:leg.type,flight_leg:leg.legNo,flight_faaPart121:true,
+    flight_remarks:"Imported from MiCrew"};
+  if(leg.dh){e.flight_type=1;}
+  else{
+    if(seat==="CA") e.flight_picCapacity=true; else e.flight_sicCapacity=true;
+    if(S.settings.prefill){e.flight_actualDepartureTime=zStr(leg.dep);e.flight_actualArrivalTime=zStr(leg.arr);}
+  }
+  if(S.settings.duty&&leg.legNo===1&&duty.rptUTC) e.flight_onDutyTime=zStr(duty.rptUTC);
+  return e;
+}
+function buildURL(pairs){
+  const pkg={metadata:{application:"MiCrew to LogTen",version:"1.0",serviceID:"com.fill.micrew-logten",
+    dateFormat:"MM/dd/yyyy",dateAndTimeFormat:"MM/dd/yyyy HH:mm",timesAreZulu:true,shouldApplyAutoFillTimes:true},
+    entities:pairs.map(([l,d])=>entity(l,d))};
+  return {url:"logten://v2/addEntities?package="+encodeURIComponent(JSON.stringify(pkg)),pkg};
+}
+
+// ---------- State ----------
+const S={raw:"",settings:{seat:"FO",prefill:true,duty:true},sent:{},trip:null};
+function load(){try{const v=JSON.parse(localStorage.getItem("micrewLogten")||"null");if(v)Object.assign(S,v,{trip:null});}catch(e){}}
+function save(){try{localStorage.setItem("micrewLogten",JSON.stringify({raw:S.raw,settings:S.settings,sent:S.sent}));}catch(e){}}
+
+function status(leg){
+  if(S.sent[leg.key]) return "sent";
+  const now=Date.now(); if(now>=leg.arr) return "ready"; if(now>=leg.dep) return "air"; return "up";
+}
+const LABEL={sent:"Logged",ready:"Ready to log",air:"Airborne",up:"Scheduled"};
+
+// ---------- Render ----------
+const $=id=>document.getElementById(id);
+function render(){
+  const out=$("out");
+  if(!S.trip||!S.trip.duties.length){out.innerHTML=S.raw?`<p class="empty">No legs found. Paste the trip text exactly as MiCrew shows it, including the Rpt- lines.</p>`:"";return;}
+  const all=[]; S.trip.duties.forEach(d=>d.legs.forEach(l=>all.push([l,d])));
+  const ready=all.filter(([l])=>status(l)==="ready");
+  const sum=all.reduce((a,[l])=>a+l.block,0);
+  let h="";
+  if(ready.length){
+    h+=`<section class="ready"><h2>${ready.length} leg${ready.length>1?"s":""} ready to log</h2>
+    <p>${ready.map(([l])=>`${l.flt} ${l.from}-${l.to}`).join(", ")}</p>
+    <button data-act="sendReady">Send ${ready.length} to LogTen</button></section>`;
+  }
+  const bl=S.trip.totalsBL; let match="";
+  if(bl){const [H,M]=bl.split(":").map(Number);match=(H*60+M===sum)?`<span class="ok">matches MiCrew’s ${bl} BL</span>`:`<span class="bad">MiCrew shows ${bl} BL, so check the times</span>`;}
+  h+=`<p class="check">${all.length} legs, <b>${hm(sum)}</b> block ${match?"— "+match:""}</p>`;
+  if(S.trip.warnings.length) h+=`<p class="warn">Unknown airport${S.trip.warnings.length>1?"s":""}: ${S.trip.warnings.join(", ")}. Times for these are treated as UTC, so add them to the airport table before sending.</p>`;
+  S.trip.duties.forEach(d=>{
+    const rl=d.rptUTC?localParts(d.rptUTC,d.rptTz):null;
+    h+=`<div class="duty"><div class="dutyhead"><h3>${new Date(Date.UTC(d.year,d.mon,d.day)).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})}</h3>
+    <span>Report ${rl?rl.hh+":"+rl.mm:""} local</span></div>`;
+    d.legs.forEach(l=>{
+      const s=status(l);
+      h+=`<div class="leg" data-s="${s}"><div class="bar"></div><div class="main">
+        <div class="route">${l.from}<span class="arrow">›</span>${l.to}</div>
+        <div class="meta"><b>${l.flt}</b>${l.dh?" deadhead":""} &nbsp; ${l.depL}–${l.arrL} local &nbsp; ${zShort(l.dep)}–${zShort(l.arr)}</div>
+        <div class="meta">${hm(l.block)} block &nbsp; ${l.type||"type ?"}</div>
+      </div><div class="side"><span class="pill ${s}">${LABEL[s]}</span>
+        ${s==="sent"?`<button class="small ghost" data-act="unsend" data-k="${l.key}">Undo</button>`:`<button class="small ghost" data-act="sendOne" data-k="${l.key}">Send</button>`}
+      </div></div>`;
+    });
+    if(d.layover) h+=`<div class="lay">Layover ${d.layover}${d.hotel?"<br>"+d.hotel.replace(/</g,"&lt;"):""}</div>`;
+    h+=`</div>`;
+  });
+  h+=`<div class="row" style="margin-top:26px"><button class="ghost" data-act="sendAll">Send whole trip</button><button class="ghost" data-act="edit">Paste a new trip</button></div>`;
+  out.innerHTML=h;
+}
+
+let pending=[];
+function openModal(pairs){
+  pending=pairs; const {url,pkg}=buildURL(pairs);
+  $("mText").textContent=`${pairs.length} leg${pairs.length>1?"s":""}: ${pairs.map(([l])=>l.flt+" "+l.from+"-"+l.to).join(", ")}. LogTen will ask you to confirm.`;
+  $("mOpen").href=url; $("mJson").textContent=JSON.stringify(pkg,null,2);
+  $("modal").classList.add("on"); $("mOpen").focus();
+}
+function closeModal(){$("modal").classList.remove("on");}
+function markPending(){pending.forEach(([l])=>S.sent[l.key]=Date.now());save();closeModal();render();}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),1800);}
+function pairsBy(fn){const a=[];S.trip.duties.forEach(d=>d.legs.forEach(l=>{if(fn(l))a.push([l,d]);}));return a;}
+
+function doParse(){S.raw=$("raw").value;S.trip=parse(S.raw);save();$("inputArea").style.display=S.trip.duties.length?"none":"";render();}
+
+$("parseBtn").onclick=doParse;
+$("clearBtn").onclick=()=>{$("raw").value="";S.raw="";S.trip=null;save();render();};
+["seat","prefill","duty"].forEach(id=>$(id).onchange=e=>{S.settings[id]=e.target.type==="checkbox"?e.target.checked:e.target.value;save();});
+$("out").onclick=e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return; const a=b.dataset.act;
+  if(a==="sendReady") openModal(pairsBy(l=>status(l)==="ready"));
+  if(a==="sendAll") openModal(pairsBy(()=>true));
+  if(a==="sendOne") openModal(pairsBy(l=>l.key===b.dataset.k));
+  if(a==="unsend"){delete S.sent[b.dataset.k];save();render();}
+  if(a==="edit"){$("inputArea").style.display="";$("raw").focus();}
+};
+$("mOpen").onclick=()=>{setTimeout(markPending,400);};
+$("mCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("mOpen").href);toast("Link copied");}catch(e){toast("Copy failed");}};
+$("mMark").onclick=markPending;
+$("mClose").onclick=closeModal;
+$("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+load();
+$("raw").value=S.raw;$("seat").value=S.settings.seat;$("prefill").checked=S.settings.prefill;$("duty").checked=S.settings.duty;
+if(S.raw){S.trip=parse(S.raw);if(S.trip.duties.length)$("inputArea").style.display="none";}
+render();
+setInterval(render,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
+</script>
+</body>
+</html>
